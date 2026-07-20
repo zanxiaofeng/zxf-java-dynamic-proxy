@@ -5,9 +5,8 @@ import zxf.java.dynamic.proxy.core.CalculatorImpl;
 import zxf.java.dynamic.proxy.core.ICalculator;
 import zxf.java.dynamic.proxy.core.IReader;
 import zxf.java.dynamic.proxy.core.MyReader;
+import zxf.java.dynamic.proxy.jdk.JdkProxyFactory;
 import zxf.java.dynamic.proxy.test.StdoutCapture;
-
-import java.lang.reflect.Proxy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,17 +15,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class JdkPattern2Test {
 
     private ICalculator shielded() {
-        return (ICalculator) Proxy.newProxyInstance(
-                ICalculator.class.getClassLoader(),
-                new Class<?>[]{ICalculator.class},
-                new ExceptionShieldHandler(new CalculatorImpl()));
+        return JdkProxyFactory.create(
+                ICalculator.class, new ExceptionShieldHandler(new CalculatorImpl()));
     }
 
     private IReader rewritten() {
-        return (IReader) Proxy.newProxyInstance(
-                IReader.class.getClassLoader(),
-                new Class<?>[]{IReader.class},
-                new ResultRewriteHandler(new MyReader()));
+        return JdkProxyFactory.create(
+                IReader.class, new ResultRewriteHandler(new MyReader()));
     }
 
     @Test

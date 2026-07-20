@@ -24,19 +24,16 @@ public final class StdoutCapture {
         PrintStream old = System.out;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         System.setOut(new PrintStream(baos));
-        T result;
         try {
-            result = action.get();
+            T result = action.get();
+            return new CaptureResult<>(result, baos.toString());
         } catch (RuntimeException | Error e) {
-            System.setOut(old);
             throw e;
         } catch (Throwable t) {
-            System.setOut(old);
             throw new RuntimeException(t);
         } finally {
-            System.setOut(old);
+            System.setOut(old); // 无论成功/异常，唯一恢复点
         }
-        return new CaptureResult<>(result, baos.toString());
     }
 
     public record CaptureResult<T>(T value, String output) {

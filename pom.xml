@@ -4,13 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.example</groupId>
+    <groupId>zxf.java</groupId>
     <artifactId>zxf-java-dynamic-proxy</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <cglib.version>3.3.0</cglib.version>
         <bytebuddy.version>1.14.18</bytebuddy.version>
         <junit.version>5.10.2</junit.version>
     </properties>
@@ -20,18 +21,15 @@
         <dependency>
             <groupId>cglib</groupId>
             <artifactId>cglib</artifactId>
-            <version>3.3.0</version>
+            <version>${cglib.version}</version>
         </dependency>
 
-        <!-- ByteBuddy：现代动态代理/字节码增强（Mockito、Spring 默认底层） -->
+        <!-- ByteBuddy：现代动态代理/字节码增强（Mockito、Hibernate 等框架的默认实现）。
+             注意：本项目只做 subclass 代理，用不到 byte-buddy-agent
+             （那个包用于运行期 attach/redefine 已加载的类），故不引入。 -->
         <dependency>
             <groupId>net.bytebuddy</groupId>
             <artifactId>byte-buddy</artifactId>
-            <version>${bytebuddy.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>net.bytebuddy</groupId>
-            <artifactId>byte-buddy-agent</artifactId>
             <version>${bytebuddy.version}</version>
         </dependency>
 
@@ -49,9 +47,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
-                <configuration>
-                    <release>21</release>
-                </configuration>
+                <!-- release 版本由 <maven.compiler.release> 属性统一提供，不重复配置 -->
             </plugin>
 
             <plugin>
@@ -62,6 +58,13 @@
                     <!-- cglib 在 JDK16+ 需要打开 java.base/java.lang 才能运行期 defineClass -->
                     <argLine>--add-opens=java.base/java.lang=ALL-UNNAMED</argLine>
                 </configuration>
+            </plugin>
+
+            <!-- 固定版本，保证 README 里的 mvn exec:java 行为可复现 -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.6.3</version>
             </plugin>
         </plugins>
     </build>

@@ -22,7 +22,7 @@ Java 动态代理（Dynamic Proxy）专题 demo，覆盖 **JDK 代理 / cglib / 
 | cglib CallbackFilter | `cglib/pattern2` | 同一代理的不同方法路由到不同 Callback |
 | cglib FixedValue / LazyLoader | `cglib/pattern3` | 固定返回、懒加载（虚拟代理） |
 | 本质对比 / final 边界 / 性能 | `comparison` | JDK vs cglib 的机制、能力边界、性能实测 |
-| ByteBuddy 现代实现 | `bytebuddy` | cglib 的工业级替代（Mockito、Spring 默认底层） |
+| ByteBuddy 现代实现 | `bytebuddy` | cglib 的工业级替代（Mockito、Hibernate 等框架的默认字节码实现） |
 | AOP 实战缩影 | `aop` | 注解驱动 = 声明式增强（迷你 Spring AOP） |
 
 ---
@@ -98,7 +98,7 @@ mvn exec:java -Dexec.mainClass=zxf.java.dynamic.proxy.aop.TestAOP
 - `Method.invoke` 抛的是 `InvocationTargetException`，**真实异常在 `getCause()` 里**（见 `ExceptionShieldHandler`）。容错/重试/降级逻辑应基于 cause。
 
 ### 7. 返回值改写必须兼容声明类型
-- 代理会按目标方法的**声明返回类型**做拆箱/类型校验：`int` 方法只能返回 `Integer`/`null`，返回 `String` 会 `ClassCastException`。需要改写类型时，应在 **String 等引用返回**上做（如脱敏、格式化）。
+- 代理会按目标方法的**声明返回类型**做拆箱/类型校验：`int` 方法只能返回 `Integer`（返回 `null` 会在拆箱时抛 NPE），返回 `String` 会 `ClassCastException`。需要改写类型时，应在 **String 等引用返回**上做（如脱敏、格式化）。
 
 ### 8. JDK 16+ 下 cglib 的运行参数
 - cglib 3.3.0 在 JDK 16+ 需要打开 `java.base/java.lang` 才能运行期 `defineClass`。本项目通过：
@@ -109,6 +109,10 @@ mvn exec:java -Dexec.mainClass=zxf.java.dynamic.proxy.aop.TestAOP
 
 ### 9. demo 的可验证性
 - 别只靠 `main` 肉眼看输出。本项目为每个 pattern 配了 JUnit 断言（捕获 stdout + 校验返回值），保证"增强真的发生了"。`src/test/java` 下与 main 包结构对应。
+
+### 10. demo 里为什么用 System.out 而不是日志框架
+- 本项目把 stdout 当作**被观测的演示行为**（测试用 `StdoutCapture` 断言增强真的发生了），这是刻意取舍。
+- 真实项目请勿照搬：日志请用 SLF4J（如 Lombok `@Slf4j` + 占位符），不要用 `System.out.println` 当日志。
 
 ---
 

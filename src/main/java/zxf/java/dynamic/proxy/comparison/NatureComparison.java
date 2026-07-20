@@ -17,7 +17,8 @@ import java.lang.reflect.Proxy;
  *   <tr><td>机制</td><td>实现接口（运行期生成 implements 目标接口的类）</td><td>继承类（生成目标类的子类）</td></tr>
  *   <tr><td>要求</td><td>目标必须实现接口</td><td>目标类可被继承（非 final）</td></tr>
  *   <tr><td>代理类名</td><td>com.sun.proxy.$ProxyN</td><td>xxx$$EnhancerByCGLIB$$xxxx</td></tr>
- *   <tr><td>调用方式</td><td>反射 Method.invoke</td><td>MethodProxy（FastClass 机制，更快）</td></tr>
+ *   <tr><td>调用方式</td><td>反射 Method.invoke</td><td>MethodProxy（FastClass 索引调用；历史上更快，
+ *       现代 JDK 已大幅优化反射，差距抹平甚至反超，见 PerformanceComparison）</td></tr>
  *   <tr><td>final 方法</td><td>不适用（接口无 final 实现方法）</td><td>拦截不到</td></tr>
  * </table>
  */
@@ -25,10 +26,11 @@ public class NatureComparison {
 
     public static void main(String[] args) {
         // —— JDK 代理：必须有接口，代理对象【是】ICalculator，但【不是】CalculatorImpl ——
+        ICalculator jdkTarget = new CalculatorImpl(); // 目标对象只创建一次，由 handler 持有
         ICalculator jdkProxy = (ICalculator) Proxy.newProxyInstance(
                 ICalculator.class.getClassLoader(),
                 new Class<?>[]{ICalculator.class},
-                (proxy, method, a) -> method.invoke(new CalculatorImpl(), a));
+                (proxy, method, a) -> method.invoke(jdkTarget, a));
         System.out.println("JDK 代理类名  : " + jdkProxy.getClass().getName());
         System.out.println("  是 ICalculator? " + (jdkProxy instanceof ICalculator));
         System.out.println("  是 CalculatorImpl? " + (jdkProxy instanceof CalculatorImpl)); // false

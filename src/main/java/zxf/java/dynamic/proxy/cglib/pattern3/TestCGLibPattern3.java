@@ -8,7 +8,8 @@ import zxf.java.dynamic.proxy.core.HeavyService;
  */
 public class TestCGLibPattern3 {
     public static void main(String[] args) {
-        // 1. FixedValue：所有方法返回 999，真实方法根本不会执行
+        // 1. FixedValue：业务方法统一返回 999，真实方法根本不会执行
+        //    （注意：toString() 等返回类型不兼容的方法被调到会抛 ClassCastException）
         Calculator mock = FixedValueDemo.create(Calculator.class);
         System.out.println("mock.add(2,3) = " + mock.add(2, 3));        // 999
         System.out.println("mock.divide(10,2) = " + mock.divide(10, 2)); // 999

@@ -38,13 +38,14 @@ public class PerformanceComparison {
         enhancer.setCallback((MethodInterceptor) (p, m, a, mp) -> mp.invokeSuper(p, a));
         Calculator cglibProxy = (Calculator) enhancer.create();
 
-        // 预热，触发 JIT
+        // 预热，触发 JIT（三组调用方式全部预热，包括反射基线，否则基线测量会混入 JIT 编译开销）
+        Method addMethod = ICalculator.class.getMethod("add", int.class, int.class);
         for (int i = 0; i < WARMUP; i++) {
+            addMethod.invoke(jdkTarget, 1, 1);
             jdkProxy.add(1, 1);
             cglibProxy.add(1, 1);
         }
 
-        Method addMethod = ICalculator.class.getMethod("add", int.class, int.class);
         long t1 = System.nanoTime();
         for (int i = 0; i < ITERATIONS; i++) {
             addMethod.invoke(jdkTarget, 1, 1); // 直接反射基线
